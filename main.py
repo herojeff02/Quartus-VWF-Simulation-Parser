@@ -1,36 +1,58 @@
 import string
 import sys
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, QTimer
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import *
 
-table = None
+board_data = None # next line: just a test value
+board_data = [['1','0','0','1', '0', '0'], ['0','1','1','1', '0', '0'], ['1','1','1','1', '0', '0'], ['1','1','1','1', '0', '0'], ['1','1','1','1', '0', '0'], ['1','1','1','1', '0', '0']]
 
 class MainWindow(QMainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, parent = None):
         QMainWindow.__init__(self, parent)
+        self.current_timer = None
         self.setFixedSize(360, 360)
-        table = QTableWidget()
-        table.setColumnCount(6)
-        table.setRowCount(6)
-        table.horizontalHeader().hide()
-        table.verticalHeader().hide()
-        table.setEnabled(False)
-        self.setCentralWidget(table)
+        self.table = QTableWidget()
+        self.table.setColumnCount(6)
+        self.table.setRowCount(6)
+        self.table.horizontalHeader().hide()
+        self.table.verticalHeader().hide()
+        self.table.setEnabled(False)
+        self.setCentralWidget(self.table)
+
         for i in range(0, 6):
-            table.setRowHeight(i, 60)
-            table.setColumnWidth(i, 60)
+            self.table.setRowHeight(i, 60)
+            self.table.setColumnWidth(i, 60)
 
-        data1 = [['1','0','0','1', '0', '0'], ['0','1','1','1', '0', '0'], ['1','1','1','1', '0', '0'], ['1','1','1','1', '0', '0'], ['1','1','1','1', '0', '0'], ['1','1','1','1', '0', '0']]
+        self.timer = QTimer(self)
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.draw)
+        self.timer.start()
 
+        # for i in range(0, 1001):
+        #     print("refreshed")
+        #     self.start_timer()
+
+
+    def draw(self):
+        print("draw")
         for row in range(6):
             for column in range(6):
                 temp = QTableWidgetItem()
-                if data1[row][column] == '0':
+                if board_data[row][column] == '0':
                     temp.setBackground(QColor(0, 0, 0))
-                elif data1[row][column] == '1':
+                elif board_data[row][column] == '1':
                     temp.setBackground(QColor(255, 0, 0))
-                table.setItem(row, column, temp)
+                self.table.setItem(row, column, temp)
+
+    def start_timer(self):
+        if self.current_timer:
+            self.current_timer.stop()
+            self.current_timer.deleteLater()
+        self.current_timer = QTimer()
+        self.current_timer.timeout.connect(self.draw)
+        self.current_timer.setSingleShot(True)
+        self.current_timer.start(10)
 
 
 lines = []
@@ -152,14 +174,8 @@ for item in signals:
 
 f.close()
 
-# if __name__ == '__main__':
-#   app = QApplication(sys.argv)
-#   main = QMainWindow()
-#   main.show()
-#   sys.exit(app.exec_())
-
 if __name__ == '__main__':
   app = QApplication(sys.argv)
   window = MainWindow()
   window.show()
-  sys.exit(app.exec_())
+  app.exec()
