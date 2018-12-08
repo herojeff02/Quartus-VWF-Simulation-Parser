@@ -1,76 +1,91 @@
-import string
 import sys
-from PyQt5.QtCore import QSize, QTimer
-from PyQt5.QtGui import QColor
+from PyQt5.QtCore import QSize, QTimer, Qt
+from PyQt5.QtGui import QColor, QPixmap
 from PyQt5.QtWidgets import *
+
+color_background = QColor(255, 255, 255)
+color_blocked = QColor(97, 97, 97)
+color_goal = QColor(4, 194, 2)
+color_spawn = QColor(97, 152, 255)
+color_obstacle = QColor(236, 30, 15)
+
+cell_empty = 0
+cell_blocked = 1
+cell_goal = 2
+cell_spawn = 3
+cell_obstacle = 4
+cell_player = 5
 
 board_data = [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
 
-def parse_wall():
+def did_die(time):
+    pass
+
+def did_clear_game():
+    pass
+
+def parse_goal():
+    pass
+
+def parse_obstacle(time):
+    pass
+
+def parse_spawn():
+    pass
+
+def parse_player(time):
+    pass
+
+def parse_blocked():
     for item in signals:
         if item.getName() == "romOutput[6]":
             temp = item.getTransitionArray()
             j=0
             for i in range(0, 6):
                 if ((i+2) * 10 >= temp[j].getDuration()):
-                    print("asdf" + str(j))
                     j += 1
                 board_data[i][5] = temp[j].getLevel()
-                print(board_data[i][5])
-                print("dkdkdkdk - "+str(temp[j].getDuration()))
         elif item.getName() == "romOutput[5]":
             temp = item.getTransitionArray()
             j=0
             for i in range(0, 6):
                 if ((i+2) * 10 >= temp[j].getDuration()):
-                    print("asdf" + str(j))
                     j += 1
                 board_data[i][4] = temp[j].getLevel()
-                print(board_data[i][4])
-                print("dkdkdkdk - "+str(temp[j].getDuration()))
         elif item.getName() == "romOutput[4]":
             temp = item.getTransitionArray()
             j=0
             for i in range(0, 6):
                 if ((i+2) * 10 >= temp[j].getDuration()):
-                    print("asdf" + str(j))
                     j += 1
                 board_data[i][3] = temp[j].getLevel()
-                print(board_data[i][3])
-                print("dkdkdkdk - "+str(temp[j].getDuration()))
         elif item.getName() == "romOutput[3]":
             temp = item.getTransitionArray()
             j=0
             for i in range(0, 6):
                 if ((i+2) * 10 >= temp[j].getDuration()):
-                    print("asdf" + str(j))
                     j += 1
                 board_data[i][2] = temp[j].getLevel()
-                print(board_data[i][2])
-                print("dkdkdkdk - "+str(temp[j].getDuration()))
         elif item.getName() == "romOutput[2]":
             temp = item.getTransitionArray()
             j=0
             for i in range(0, 6):
                 if ((i+2) * 10 >= temp[j].getDuration()):
-                    print("asdf" + str(j))
                     j += 1
                 board_data[i][1] = temp[j].getLevel()
-                print(board_data[i][1])
-                print("dkdkdkdk - "+str(temp[j].getDuration()))
         elif item.getName() == "romOutput[1]":
             temp = item.getTransitionArray()
             j=0
             for i in range(0, 6):
                 if ((i+2) * 10 >= temp[j].getDuration()):
-                    print("asdf" + str(j))
                     j += 1
                 board_data[i][0] = temp[j].getLevel()
-                print(board_data[i][0])
-                print("dkdkdkdk - "+str(temp[j].getDuration()))
 
-def boardDataRefresh():
-    print("print")
+def boardDataRefresh(time):
+    parse_goal()
+    parse_obstacle(time)
+    parse_player(time)
+    parse_spawn()
 
 def testPrint():
     for item in signals:
@@ -79,13 +94,6 @@ def testPrint():
             print(str(int(item.getTransition(i).getLevel())) + " - " + str(item.getTransition(i).getDuration()))
 
 lines = []
-select_line = []
-# upside = []
-# downside = []
-# leftside = []
-# rightside = []
-temp_string = []
-input = []
 signals = []
 signal_cursor = 0
 
@@ -217,48 +225,116 @@ f.close()
 
 
 
+
 class MainWindow(QMainWindow):
+
+
     def __init__(self, parent = None):
         QMainWindow.__init__(self, parent)
-        self.setFixedSize(360, 360)
+        self.timer_count = 0
+
+        self.setFixedSize(360, 420)
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setRowCount(6)
         self.table.horizontalHeader().hide()
         self.table.verticalHeader().hide()
-        self.table.setEnabled(False)
         self.setCentralWidget(self.table)
+
+        self.button = QPushButton("Start your journey.")
+        self.button.clicked.connect(self.start_timer)
+        self.button.setFixedHeight(30)
+
+        tb = QToolBar()
+        tb.setFixedHeight(40)
+        tb.setFloatable(False)
+        tb.setMovable(False)
+        left_spacer = QWidget()
+        left_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        right_spacer = QWidget()
+        right_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        tb.addWidget(left_spacer)
+        tb.addWidget(self.button)
+        tb.addWidget(right_spacer)
+        self.addToolBar(tb)
+
+        self.tb2 = QToolBar()
+        self.tb2.setFloatable(False)
+        self.tb2.setMovable(False)
+        self.txt = QLabel("")
+        left_spacer2 = QWidget()
+        left_spacer2.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        right_spacer2 = QWidget()
+        right_spacer2.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.tb2.addWidget(left_spacer2)
+        self.tb2.addWidget(self.txt)
+        self.tb2.addWidget(right_spacer2)
+        self.tb2.setFixedHeight(20)
+        self.addToolBar(Qt.BottomToolBarArea, self.tb2)
 
         for i in range(0, 6):
             self.table.setRowHeight(i, 60)
             self.table.setColumnWidth(i, 60)
 
-        self.timer = QTimer(self)
-        self.timer.setInterval(1000)
-        self.timer.timeout.connect(self.draw)
-        self.timer.start()
 
 
-        parse_wall()
+
+
+        parse_blocked()
 
         # for i in range(0, 1001):
         #     print("refreshed")
         #     self.start_timer()
 
+    def timerCountUpdate(self, time=0):
+        self.txt.setText(str(self.timer_count))
+        self.tb2.setFixedHeight(20)
+        self.addToolBar(Qt.BottomToolBarArea, self.tb2)
+
+    def start_timer(self):
+        self.timer = QTimer(self)
+        self.timer.setInterval(20)
+        self.timer.timeout.connect(self.draw)
+        self.button.setDisabled(True)
+        self.timer.start()
 
     def draw(self):
-        print("draw")
+        self.timerCountUpdate(self.timer_count)
+        self.timer_count += 1
+        if self.timer_count >= 1001:
+            self.timer.stop()
+        boardDataRefresh(self.timer_count)
+
+
+
         for row in range(6):
             for column in range(6):
                 temp = QTableWidgetItem()
-                if board_data[row][column] == 0:
-                    temp.setBackground(QColor(255, 255, 255))
-                elif board_data[row][column] == 1:
-                    temp.setBackground(QColor(97, 97, 97))
+                temp.setFlags(Qt.ItemIsSelectable)
+                temp.setFlags(Qt.ItemIsEnabled)
+                if board_data[row][column] == cell_empty:
+                    temp.setBackground(color_background)
+                elif board_data[row][column] == cell_blocked:
+                    temp.setBackground(color_blocked)
+                elif board_data[row][column] == cell_goal:
+                    temp.setBackground(color_goal)
+                elif board_data[row][column] == cell_obstacle:
+                    temp.setBackground(color_obstacle)
+                elif board_data[row][column] == cell_spawn:
+                    temp.setBackground(color_spawn)
+                elif board_data[row][column] == cell_player:
+                    temp = QLabel()
+                    pixmap = QPixmap('test.png').scaled(60, 60, Qt.KeepAspectRatio,
+                                                                                     Qt.SmoothTransformation)
+                    temp.setPixmap(pixmap)
+                    self.table.setCellWidget(row, column, temp)
+                    continue
+                self.table.setIconSize(QSize(60,60))
                 self.table.setItem(row, column, temp)
+
 
 if __name__ == '__main__':
   app = QApplication(sys.argv)
   window = MainWindow()
   window.show()
-  app.exec()
+  sys.exit(app.exec_())
