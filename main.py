@@ -241,7 +241,7 @@ class MainWindow(QMainWindow):
         self.table.verticalHeader().hide()
         self.setCentralWidget(self.table)
 
-        self.button = QPushButton("Start your journey.")
+        self.button = QPushButton("Bon Voyage")
         self.button.clicked.connect(self.start_timer)
         self.button.setFixedHeight(30)
 
