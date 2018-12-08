@@ -398,8 +398,7 @@ TRANSITION_LIST("CLK")
 			LEVEL 1 FOR 5.0;
 			LEVEL 0 FOR 5.0;
 			LEVEL 1 FOR 5.0;
-			LEVEL 0 FOR 5.0;
-			LEVEL 1 FOR 5.0;
+			LEVEL 0 FOR 10.0;
 		}
 	}
 }
@@ -503,8 +502,8 @@ TRANSITION_LIST("romOutput[6]")
 		{
 			REPEAT = 1;
 			LEVEL 1 FOR 45.0;
-			LEVEL 0 FOR 20.0;
-			LEVEL 1 FOR 935.0;
+			LEVEL 0 FOR 30.0;
+			LEVEL 1 FOR 925.0;
 		}
 	}
 }
