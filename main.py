@@ -1,8 +1,37 @@
-# print("hello.")
-# print("This is HAL speaking.")
-# print("You should NOTs entitle somebody a superuser, unless both of you are sure that you're going the right way.")
-
 import string
+import sys
+from PyQt5.QtCore import QSize
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import *
+
+table = None
+
+class MainWindow(QMainWindow):
+    def __init__(self, parent=None):
+        QMainWindow.__init__(self, parent)
+        self.setFixedSize(360, 360)
+        table = QTableWidget()
+        table.setColumnCount(6)
+        table.setRowCount(6)
+        table.horizontalHeader().hide()
+        table.verticalHeader().hide()
+        table.setEnabled(False)
+        self.setCentralWidget(table)
+        for i in range(0, 6):
+            table.setRowHeight(i, 60)
+            table.setColumnWidth(i, 60)
+
+        data1 = [['1','0','0','1', '0', '0'], ['0','1','1','1', '0', '0'], ['1','1','1','1', '0', '0'], ['1','1','1','1', '0', '0'], ['1','1','1','1', '0', '0'], ['1','1','1','1', '0', '0']]
+
+        for row in range(6):
+            for column in range(6):
+                temp = QTableWidgetItem()
+                if data1[row][column] == '0':
+                    temp.setBackground(QColor(0, 0, 0))
+                elif data1[row][column] == '1':
+                    temp.setBackground(QColor(255, 0, 0))
+                table.setItem(row, column, temp)
+
 
 lines = []
 select_line = []
@@ -28,12 +57,7 @@ class Transition:
 
 class Signal:
     name = ""
-    value_type = ""
-    signal_type = ""
-    width = ""
-    lsb_index = ""
     direction = ""
-    parent = ""
     value_changes = []
     def __init__(self, name, direction):
         self.value_changes = []
@@ -127,3 +151,15 @@ for item in signals:
         print(item.getTransition(i).getDuration())
 
 f.close()
+
+# if __name__ == '__main__':
+#   app = QApplication(sys.argv)
+#   main = QMainWindow()
+#   main.show()
+#   sys.exit(app.exec_())
+
+if __name__ == '__main__':
+  app = QApplication(sys.argv)
+  window = MainWindow()
+  window.show()
+  sys.exit(app.exec_())
