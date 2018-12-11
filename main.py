@@ -410,7 +410,7 @@ class MainWindow(QMainWindow):
 
     def start_timer(self):
         self.timer = QTimer(self)
-        self.timer.setInterval(200)
+        self.timer.setInterval(100)
         self.timer.timeout.connect(self.draw)
         self.button.setDisabled(True)
         self.timer.start()
