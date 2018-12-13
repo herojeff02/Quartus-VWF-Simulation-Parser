@@ -16,12 +16,14 @@ cell_spawn = 3
 cell_obstacle = 4
 cell_player = 5
 
-board_data = [[0, 0, 0, 1, 1, 1],
-              [0, 0, 0, 0, 1, 1],
-              [0, 0, 0, 0, 0, 1],
-              [1, 0, 0, 0, 0, 0],
-              [1, 1, 0, 0, 0, 0],
-              [1, 1, 1, 0, 0, 2]]
+board_data = [[1, 1, 1, 1, 1, 1, 1, 1],
+              [1, 0, 0, 0, 1, 1, 1, 1],
+              [1, 0, 0, 0, 0, 1, 1, 1],
+              [1, 0, 0, 0, 0, 0, 1, 1],
+              [1, 1, 0, 0, 0, 0, 0, 1],
+              [1, 1, 1, 0, 0, 0, 0, 1],
+              [1, 1, 1, 1, 0, 0, 2, 1],
+              [1, 1, 1, 1, 1, 1, 1, 1]]
 
 
 def did_die(time):
@@ -77,12 +79,12 @@ def parse_spawn():
             temp = item.getTransitionArray()
             row += temp[0].getLevel()*4
 
-    board_data[int(row)-1][int(col)-1] = cell_spawn
+    board_data[int(row)][int(col)] = cell_spawn
 
 
 def remove_player():
-    for i in range(0, 6):
-        for j in range(0, 6):
+    for i in range(0, 8):
+        for j in range(0, 8):
             if board_data[i][j] == cell_player:
                 board_data[i][j] = cell_empty
 
@@ -95,7 +97,7 @@ def parse_player(time):
             temp = item.getTransitionArray()
             for period in temp:
                 total += period.getDuration()
-                if total > time:
+                if round(total) >= time:
                     col += period.getLevel()
                     break
     total = 0.0
@@ -104,7 +106,7 @@ def parse_player(time):
             temp = item.getTransitionArray()
             for period in temp:
                 total += period.getDuration()
-                if total > time:
+                if round(total) >= time:
                     col += period.getLevel()*2
                     break
     total = 0.0
@@ -113,7 +115,7 @@ def parse_player(time):
             temp = item.getTransitionArray()
             for period in temp:
                 total += period.getDuration()
-                if total > time:
+                if round(total) >= time:
                     col += period.getLevel()*4
                     break
     total = 0.0
@@ -145,7 +147,9 @@ def parse_player(time):
                     row += period.getLevel()*4
                     break
 
-    board_data[int(row) - 1][int(col) - 1] = cell_player
+    print(str(time) + "::" + str(row) + "." + str(col))
+
+    board_data[int(row)][int(col)] = cell_player
 
 def parse_blocked():
     for item in signals:
@@ -222,7 +226,7 @@ class Transition:
         self.level = level
 
     def getLevel(self):
-        return self.level
+        return int(self.level)
 
     def getDuration(self):
         return self.duration
@@ -417,7 +421,7 @@ class MainWindow(QMainWindow):
 
     def draw(self):
         self.timerCountUpdate(self.timer_count)
-        self.timer_count += 10
+        self.timer_count += 1
         if self.timer_count >= 1001:
             self.timer.stop()
         if (did_clear_game(self.timer_count)):
@@ -430,22 +434,22 @@ class MainWindow(QMainWindow):
                 temp = QTableWidgetItem()
                 temp.setFlags(Qt.ItemIsSelectable)
                 temp.setFlags(Qt.ItemIsEnabled)
-                if board_data[row][column] == cell_empty:
+                if board_data[row+1][column+1] == cell_empty:
                     temp.setBackground(color_background)
                     self.table.removeCellWidget(row, column)
-                elif board_data[row][column] == cell_blocked:
+                elif board_data[row+1][column+1] == cell_blocked:
                     temp.setBackground(color_blocked)
                     self.table.removeCellWidget(row, column)
-                elif board_data[row][column] == cell_goal:
+                elif board_data[row+1][column+1] == cell_goal:
                     temp.setBackground(color_goal)
                     self.table.removeCellWidget(row, column)
-                elif board_data[row][column] == cell_obstacle:
+                elif board_data[row+1][column+1] == cell_obstacle:
                     temp.setBackground(color_obstacle)
                     self.table.removeCellWidget(row, column)
-                elif board_data[row][column] == cell_spawn:
+                elif board_data[row+1][column+1] == cell_spawn:
                     temp.setBackground(color_spawn)
                     self.table.removeCellWidget(row, column)
-                elif board_data[row][column] == cell_player:
+                elif board_data[row+1][column+1] == cell_player:
                     temp = QLabel()
                     pixmap = QPixmap('test.png').scaled(60, 60, Qt.KeepAspectRatio,
                                                         Qt.SmoothTransformation)
