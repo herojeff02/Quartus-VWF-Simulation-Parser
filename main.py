@@ -17,6 +17,8 @@ cell_spawn = 3
 cell_obstacle = 4
 cell_player = 5
 
+interval = 100
+
 board_data = [[1, 1, 1, 1, 1, 1, 1, 1],
               [1, 0, 0, 0, 1, 1, 1, 1],
               [1, 0, 0, 0, 0, 1, 1, 1],
@@ -28,12 +30,11 @@ board_data = [[1, 1, 1, 1, 1, 1, 1, 1],
 
 
 def did_die(time):
-    total = 0.0
     for item in signals:
         if item.getName() == "die":
             temp = item.getTransitionArray()
             for period in temp:
-                total += period.getDuration()
+                total = period.getDuration()
                 if total > time:
                     return period.getLevel()
 
@@ -44,7 +45,7 @@ def did_clear_game(time):
         if item.getName() == "WIN":
             temp = item.getTransitionArray()
             for period in temp:
-                total += period.getDuration()
+                total = period.getDuration()
                 if total > time:
                     return period.getLevel()
 
@@ -117,7 +118,6 @@ def parse_player(time):
                 total = period.getDuration()
                 if total >= time:
                     col += period.getLevel()*4
-                    # print(total)
                     break
 
     for item in signals:
@@ -146,7 +146,7 @@ def parse_player(time):
                     row += period.getLevel()*4
                     break
 
-    # print(str(time) + "::" + str(row) + "." + str(col))
+    print(str(time) + "::" + str(row) + "." + str(col))
 
     board_data[int(row)][int(col)] = cell_player
 
@@ -349,9 +349,6 @@ signals = signals[:-1]
 
 f.close()
 
-testPrint()
-
-
 
 
 
@@ -416,63 +413,87 @@ class MainWindow(QMainWindow):
 
     def start_timer(self):
         self.timer = QTimer(self)
-        self.timer.setInterval(100)
+        self.timer.setInterval(interval)
         self.timer.timeout.connect(self.draw)
         self.button.setDisabled(True)
         self.timer.start()
 
     def draw(self):
+        self.timer.setInterval(interval)
         self.timerCountUpdate(self.timer_count)
         self.timer_count += 10
         if self.timer_count >= 1001:
             self.timer.stop()
+
+        did_clear_flag = 0
+
         if (did_clear_game(self.timer_count)):
             self.timer.stop()
             print("You beat the game. I just had to tell you this in terminal :)")
+            self.txt.setText("You beat the game in "+str(self.timer_count)+" nanoseconds.")
+            did_clear_flag = 1
 
         boardDataRefresh(self.timer_count)
 
+        did_die_flag = 0
+
+        for i in range(self.timer_count, self.timer_count + interval):
+            if did_die(i) == 1:
+                did_die_flag = 1
+                break
+
         for row in range(6):
             for column in range(6):
-                temp = QTableWidgetItem()
-                temp.setFlags(Qt.ItemIsSelectable)
-                temp.setFlags(Qt.ItemIsEnabled)
-                if board_data[row+1][column+1] == cell_empty:
-                    temp.setBackground(color_background)
-                    self.table.removeCellWidget(row, column)
-                elif board_data[row+1][column+1] == cell_blocked:
-                    temp.setBackground(color_blocked)
-                    self.table.removeCellWidget(row, column)
-                elif board_data[row+1][column+1] == cell_goal:
-                    # temp.setBackground(color_goal)
-                    temp = QLabel()
-                    pixmap = QPixmap(os.path.dirname(os.path.realpath(__file__)) + '/arrival.png').scaled(60, 60, Qt.KeepAspectRatio,
-                                                        Qt.SmoothTransformation)
-                    temp.setPixmap(pixmap)
-                    self.table.setCellWidget(row, column, temp)
-                    continue
-                elif board_data[row+1][column+1] == cell_obstacle:
-                    temp.setBackground(color_obstacle)
-                    self.table.removeCellWidget(row, column)
-                elif board_data[row+1][column+1] == cell_spawn:
-                    # temp.setBackground(color_spawn)
-                    temp = QLabel()
-                    pixmap = QPixmap(os.path.dirname(os.path.realpath(__file__)) + '/spawn.png').scaled(60, 60,
-                                                                                                          Qt.KeepAspectRatio,
-                                                                                                          Qt.SmoothTransformation)
-                    temp.setPixmap(pixmap)
-                    self.table.setCellWidget(row, column, temp)
-                    continue
-                elif board_data[row+1][column+1] == cell_player:
-                    temp = QLabel()
-                    pixmap = QPixmap(os.path.dirname(os.path.realpath(__file__)) + '/test.png').scaled(60, 60, Qt.KeepAspectRatio,
-                                                        Qt.SmoothTransformation)
-                    temp.setPixmap(pixmap)
-                    self.table.setCellWidget(row, column, temp)
-                    continue
-                self.table.setIconSize(QSize(60, 60))
-                self.table.setItem(row, column, temp)
+                if did_die_flag == 1:
+                    temp = QTableWidgetItem()
+                    temp.setFlags(Qt.ItemIsSelectable)
+                    temp.setFlags(Qt.ItemIsEnabled)
+                    temp.setBackground(QColor(255, 0, 0))
+                    self.table.setItem(row, column, temp)
+                else:
+                    temp = QTableWidgetItem()
+                    temp.setFlags(Qt.ItemIsSelectable)
+                    temp.setFlags(Qt.ItemIsEnabled)
+                    if board_data[row+1][column+1] == cell_empty:
+                        temp.setBackground(color_background)
+                        self.table.removeCellWidget(row, column)
+                    elif board_data[row+1][column+1] == cell_blocked:
+                        temp.setBackground(color_blocked)
+                        self.table.removeCellWidget(row, column)
+                    elif board_data[row+1][column+1] == cell_goal:
+                        # temp.setBackground(color_goal)
+                        temp = QLabel()
+                        pixmap = QPixmap(os.path.dirname(os.path.realpath(__file__)) + '/arrival.png').scaled(60, 60, Qt.KeepAspectRatio,
+                                                            Qt.SmoothTransformation)
+                        temp.setPixmap(pixmap)
+                        self.table.setCellWidget(row, column, temp)
+                        continue
+                    elif board_data[row+1][column+1] == cell_obstacle:
+                        temp.setBackground(color_obstacle)
+                        self.table.removeCellWidget(row, column)
+                    elif board_data[row+1][column+1] == cell_spawn:
+                        # temp.setBackground(color_spawn)
+                        temp = QLabel()
+                        pixmap = QPixmap(os.path.dirname(os.path.realpath(__file__)) + '/spawn.png').scaled(60, 60,
+                                                                                                              Qt.KeepAspectRatio,
+                                                                                                              Qt.SmoothTransformation)
+                        temp.setPixmap(pixmap)
+                        self.table.setCellWidget(row, column, temp)
+                        continue
+                    elif board_data[row+1][column+1] == cell_player:
+                        temp = QLabel()
+                        pixmap = QPixmap(os.path.dirname(os.path.realpath(__file__)) + '/test.png').scaled(60, 60, Qt.KeepAspectRatio,
+                                                            Qt.SmoothTransformation)
+                        temp.setPixmap(pixmap)
+                        self.table.setCellWidget(row, column, temp)
+                        continue
 
+                    if did_clear_flag == 1:
+                        if board_data[row+1][column+1] == cell_empty:
+                            temp.setBackground(QColor(200, 200, 255))
+
+                    self.table.setIconSize(QSize(60, 60))
+                    self.table.setItem(row, column, temp)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
