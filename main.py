@@ -1,10 +1,11 @@
+import os
 import sys
 from PyQt5.QtCore import QSize, QTimer, Qt
 from PyQt5.QtGui import QColor, QPixmap
 from PyQt5.QtWidgets import *
 
 color_background = QColor(255, 255, 255)
-color_blocked = QColor(97, 97, 97)
+color_blocked = QColor(2, 102, 0)
 color_goal = QColor(4, 194, 2)
 color_spawn = QColor(97, 152, 255)
 color_obstacle = QColor(236, 30, 15)
@@ -91,63 +92,61 @@ def remove_player():
 def parse_player(time):
     col = 0
     row = 0
-    total = 0.0
     for item in signals:
         if item.getName() == "col[2]":
             temp = item.getTransitionArray()
             for period in temp:
-                total += period.getDuration()
-                if round(total) >= time:
+                total = period.getDuration()
+                if total >= time:
                     col += period.getLevel()
+
                     break
-    total = 0.0
     for item in signals:
         if item.getName() == "col[1]":
             temp = item.getTransitionArray()
             for period in temp:
-                total += period.getDuration()
-                if round(total) >= time:
+                total = period.getDuration()
+                if total >= time:
                     col += period.getLevel()*2
                     break
-    total = 0.0
     for item in signals:
         if item.getName() == "col[0]":
             temp = item.getTransitionArray()
+
             for period in temp:
-                total += period.getDuration()
-                if round(total) >= time:
+                total = period.getDuration()
+                if total >= time:
                     col += period.getLevel()*4
+                    # print(total)
                     break
-    total = 0.0
 
     for item in signals:
         if item.getName() == "row[2]":
             temp = item.getTransitionArray()
             for period in temp:
-                total += period.getDuration()
+                total = period.getDuration()
                 if total > time:
                     row += period.getLevel()
                     break
-    total = 0.0
     for item in signals:
         if item.getName() == "row[1]":
             temp = item.getTransitionArray()
             for period in temp:
-                total += period.getDuration()
+                total = period.getDuration()
                 if total > time:
                     row += period.getLevel()*2
                     break
-    total = 0.0
+
     for item in signals:
         if item.getName() == "row[0]":
             temp = item.getTransitionArray()
             for period in temp:
-                total += period.getDuration()
+                total = period.getDuration()
                 if total > time:
                     row += period.getLevel()*4
                     break
 
-    print(str(time) + "::" + str(row) + "." + str(col))
+    # print(str(time) + "::" + str(row) + "." + str(col))
 
     board_data[int(row)][int(col)] = cell_player
 
@@ -275,7 +274,10 @@ def getIndexOfSignal_ByName(name):
             return i
 
 
-f = open("hw9_20181207154108.sim.txt", 'r')
+if(len(sys.argv)==1):
+    print("No file directory handed over. Abort.")
+    exit(-5)
+f = open(sys.argv[1], 'r')
 signals.append(Signal("default", "asdf"))
 
 while True:
@@ -347,7 +349,7 @@ signals = signals[:-1]
 
 f.close()
 
-
+testPrint()
 
 
 
@@ -421,11 +423,12 @@ class MainWindow(QMainWindow):
 
     def draw(self):
         self.timerCountUpdate(self.timer_count)
-        self.timer_count += 1
+        self.timer_count += 10
         if self.timer_count >= 1001:
             self.timer.stop()
         if (did_clear_game(self.timer_count)):
             self.timer.stop()
+            print("You beat the game. I just had to tell you this in terminal :)")
 
         boardDataRefresh(self.timer_count)
 
@@ -441,17 +444,28 @@ class MainWindow(QMainWindow):
                     temp.setBackground(color_blocked)
                     self.table.removeCellWidget(row, column)
                 elif board_data[row+1][column+1] == cell_goal:
-                    temp.setBackground(color_goal)
-                    self.table.removeCellWidget(row, column)
+                    # temp.setBackground(color_goal)
+                    temp = QLabel()
+                    pixmap = QPixmap(os.path.dirname(os.path.realpath(__file__)) + '/arrival.png').scaled(60, 60, Qt.KeepAspectRatio,
+                                                        Qt.SmoothTransformation)
+                    temp.setPixmap(pixmap)
+                    self.table.setCellWidget(row, column, temp)
+                    continue
                 elif board_data[row+1][column+1] == cell_obstacle:
                     temp.setBackground(color_obstacle)
                     self.table.removeCellWidget(row, column)
                 elif board_data[row+1][column+1] == cell_spawn:
-                    temp.setBackground(color_spawn)
-                    self.table.removeCellWidget(row, column)
+                    # temp.setBackground(color_spawn)
+                    temp = QLabel()
+                    pixmap = QPixmap(os.path.dirname(os.path.realpath(__file__)) + '/spawn.png').scaled(60, 60,
+                                                                                                          Qt.KeepAspectRatio,
+                                                                                                          Qt.SmoothTransformation)
+                    temp.setPixmap(pixmap)
+                    self.table.setCellWidget(row, column, temp)
+                    continue
                 elif board_data[row+1][column+1] == cell_player:
                     temp = QLabel()
-                    pixmap = QPixmap('test.png').scaled(60, 60, Qt.KeepAspectRatio,
+                    pixmap = QPixmap(os.path.dirname(os.path.realpath(__file__)) + '/test.png').scaled(60, 60, Qt.KeepAspectRatio,
                                                         Qt.SmoothTransformation)
                     temp.setPixmap(pixmap)
                     self.table.setCellWidget(row, column, temp)
